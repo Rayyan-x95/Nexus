@@ -92,7 +92,7 @@ export function Calendar({ value, onChange, markedDates = [], className }: Calen
       {/* Day grid */}
       <div className="grid grid-cols-7 gap-y-0.5">
         {cells.map((cell, idx) => {
-          const offsetMonth = idx < firstDay - 1 ? month - 1 : idx >= firstDay - 1 + daysInMonth ? month + 1 : month;
+          const offsetMonth = idx < firstDay ? month - 1 : idx >= firstDay + daysInMonth ? month + 1 : month;
           const cellDate = new Date(year, offsetMonth, cell.day, 12);
           const dateStr = cell.current
             ? `${year}-${String(month + 1).padStart(2, '0')}-${String(cell.day).padStart(2, '0')}`

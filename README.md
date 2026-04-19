@@ -2,7 +2,7 @@
 
 Titan is an offline-first productivity app for managing tasks, notes, and expenses in one place. It is built as a PWA with React, Vite, TypeScript, Tailwind CSS, Zustand, and Dexie, and it is designed to keep working when the network is unavailable.
 
-Current app version: V1.0.0
+Current app version: 1.0.0
 
 ## What Titan Includes
 
@@ -125,13 +125,13 @@ npm test
 npm i -g vercel
 ```
 
-2. Deploy a preview build.
+1. Deploy a preview build.
 
 ```bash
 vercel
 ```
 
-3. Deploy production.
+1. Deploy production.
 
 ```bash
 vercel --prod
@@ -142,12 +142,12 @@ The repository includes `vercel.json` for SPA rewrites and PWA-friendly cache he
 ### Netlify
 
 1. Connect the repository in the Netlify dashboard.
-2. Build command: `npm run build`
-3. Publish directory: `dist`
+1. Build command: `npm run build`
+1. Publish directory: `dist`
 
 The repository includes `netlify.toml` and `public/_redirects` for route handling.
 
-## Notes
+## App Notes
 
 - Dark mode is the default theme.
 - Navigation is mobile-first and bottom anchored.
