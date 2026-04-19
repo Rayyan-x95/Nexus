@@ -47,4 +47,4 @@ export interface ExpenseInput {
 
 export type TaskUpdate = Partial<Omit<Task, 'id' | 'createdAt'>>;
 export type NoteUpdate = Partial<Omit<Note, 'id' | 'createdAt'>>;
-export type ExpenseUpdate = Partial<Omit<Expense, 'id' | 'createdAt'>>;
+export type ExpenseUpdate = Partial<Omit<Expense, 'id'>>;
