@@ -4,6 +4,7 @@ import { BrowserRouter } from 'react-router-dom';
 import App from './App';
 import { ThemeProvider } from '@/core/theme';
 import { initializeCoreStore } from '@/core/store';
+import { registerPWA } from '@/pwa';
 import '@/styles/global.css';
 
 async function bootstrap() {
@@ -43,3 +44,4 @@ async function bootstrap() {
 }
 
 void bootstrap();
+registerPWA();
