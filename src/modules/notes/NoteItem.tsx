@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ArrowUpRight, Link2, PencilLine, Trash2 } from 'lucide-react';
+import { ArrowUpRight, Link2, PencilLine, Trash2, Pin } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import type { Note, Task } from '@/core/store/types';
 
@@ -43,34 +43,43 @@ export function NoteItem({ note, linkedTasks, onOpen, onDelete, onConvertToTask 
   const preview = useMemo(() => toPreview(note.content), [note.content]);
 
   return (
-    <article className="rounded-3xl border border-border bg-card p-4 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+    <article className="rounded-3xl border border-border/70 bg-card/90 p-5 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
       <button
         type="button"
         onClick={onOpen}
         className="w-full text-left focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 focus-visible:ring-offset-background"
       >
-        <p className="text-xs text-muted-foreground">Created {createdAtFormatted}</p>
-        <p className="mt-2 text-sm leading-6 text-foreground">{preview}</p>
+        <div className="flex items-center justify-between">
+          <p className="text-[11px] uppercase tracking-[0.14em] text-muted-foreground">{createdAtFormatted}</p>
+          {note.pinned && <Pin className="h-3.5 w-3.5 text-primary fill-primary" />}
+        </div>
+        <p className="mt-2 text-sm leading-7 text-foreground">{preview}</p>
+        
+        <div className="mt-3 flex flex-wrap items-center gap-3">
+          {note.tags.length > 0 && (
+            <div className="flex flex-wrap gap-2">
+              {note.tags.map((tag) => (
+                <span key={tag} className="rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-muted-foreground">
+                  #{tag}
+                </span>
+              ))}
+            </div>
+          )}
 
-        {note.tags.length > 0 ? (
-          <div className="mt-3 flex flex-wrap gap-2">
-            {note.tags.map((tag) => (
-              <span
-                key={tag}
-                className="rounded-full border border-border bg-background px-2.5 py-1 text-[11px] font-medium text-muted-foreground"
-              >
-                #{tag}
-              </span>
-            ))}
-          </div>
-        ) : null}
+          {linkedTasks.length > 0 && (
+            <p className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+              <Link2 className="h-3.5 w-3.5" />
+              {linkedTasks.length} task{linkedTasks.length === 1 ? '' : 's'}
+            </p>
+          )}
 
-        {linkedTasks.length > 0 ? (
-          <p className="mt-3 inline-flex items-center gap-1 text-xs text-muted-foreground">
-            <Link2 className="h-3.5 w-3.5" />
-            {linkedTasks.length} linked {linkedTasks.length === 1 ? 'task' : 'tasks'}
-          </p>
-        ) : null}
+          {(note.linkedNoteIds?.length ?? 0) > 0 && (
+            <p className="inline-flex items-center gap-1 text-xs text-muted-foreground">
+              <Link2 className="h-3.5 w-3.5" />
+              {note.linkedNoteIds!.length} note{note.linkedNoteIds!.length === 1 ? '' : 's'}
+            </p>
+          )}
+        </div>
       </button>
 
       <div className="mt-4 flex flex-wrap items-center justify-end gap-2">

@@ -1,15 +1,18 @@
 import { useMemo, useState } from 'react';
-import { Plus } from 'lucide-react';
+import { Plus, List, CalendarDays } from 'lucide-react';
 import { Button } from '@/components/ui/Button';
 import { Calendar } from '@/components/ui/Calendar';
 import { PageShell } from '@/components/PageShell';
 import { useStore } from '@/core/store';
-import type { Task, TaskStatus } from '@/core/store/types';
+import type { Task, TaskStatus, TaskPriority, TaskRecurrence } from '@/core/store/types';
 import { useSeo } from '@/seo';
 import { TaskForm } from './TaskForm';
 import { TaskItem } from './TaskItem';
+import { TaskCalendar } from './TaskCalendar';
+import { cn } from '@/utils/cn';
 
 type TaskFilter = 'all' | 'active' | 'completed';
+type TaskView = 'list' | 'calendar';
 
 export function TasksPage() {
   useSeo({
@@ -22,176 +25,129 @@ export function TasksPage() {
   const addTask = useStore((state) => state.addTask);
   const updateTask = useStore((state) => state.updateTask);
   const deleteTask = useStore((state) => state.deleteTask);
-  const hydrated = useStore((state) => state.hydrated);
 
   const [filter, setFilter] = useState<TaskFilter>('all');
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
+  const [view, setView] = useState<TaskView>('list');
 
-  // All task due dates for calendar dots
   const markedDates = useMemo(
     () => tasks.map((t) => t.dueDate).filter(Boolean) as string[],
     [tasks],
   );
 
-  const visibleTasks = useMemo(() => {
-    let sorted = [...tasks].sort((left, right) => right.createdAt.localeCompare(left.createdAt));
-
-    if (filter === 'active') sorted = sorted.filter((t) => t.status !== 'done');
-    else if (filter === 'completed') sorted = sorted.filter((t) => t.status === 'done');
+  const taskTree = useMemo(() => {
+    let filtered = [...tasks];
+    if (filter === 'active') filtered = filtered.filter((t) => t.status !== 'done');
+    else if (filter === 'completed') filtered = filtered.filter((t) => t.status === 'done');
 
     if (selectedDate) {
       const y = selectedDate.getFullYear();
       const m = String(selectedDate.getMonth() + 1).padStart(2, '0');
       const d = String(selectedDate.getDate()).padStart(2, '0');
       const ymd = `${y}-${m}-${d}`;
-      sorted = sorted.filter((t) => t.dueDate === ymd);
+      filtered = filtered.filter((t) => t.dueDate === ymd);
     }
 
-    return sorted;
+    const map = new Map<string, Task[]>();
+    filtered.forEach(t => {
+      if (t.parentTaskId) {
+        const children = map.get(t.parentTaskId) || [];
+        children.push(t);
+        map.set(t.parentTaskId, children);
+      }
+    });
+
+    const filteredIds = new Set(filtered.map(t => t.id));
+    const topLevel = filtered.filter(t => !t.parentTaskId || !filteredIds.has(t.parentTaskId));
+
+    topLevel.sort((a, b) => {
+      const pMap = { high: 0, medium: 1, low: 2 };
+      if (pMap[a.priority] !== pMap[b.priority]) return pMap[a.priority] - pMap[b.priority];
+      return b.createdAt.localeCompare(a.createdAt);
+    });
+
+    return { topLevel, childrenMap: map };
   }, [filter, selectedDate, tasks]);
 
-  const handleCreateTask = async (values: {
-    title: string;
-    dueDate?: string;
-    status: TaskStatus;
-  }) => {
-    await addTask({
-      title: values.title.trim(),
-      status: values.status,
-      dueDate: values.dueDate || undefined,
-      noteId: undefined,
-    });
+  const handleCreateTask = async (values: any) => {
+    await addTask({ ...values, title: values.title.trim() });
     setIsFormOpen(false);
   };
 
-  const handleUpdateTask = async (values: {
-    title: string;
-    dueDate?: string;
-    status: TaskStatus;
-  }) => {
-    if (!editingTask) {
-      return;
-    }
-
-    await updateTask(editingTask.id, {
-      title: values.title.trim(),
-      status: values.status,
-      dueDate: values.dueDate || undefined,
-    });
+  const handleUpdateTask = async (values: any) => {
+    if (!editingTask) return;
+    await updateTask(editingTask.id, { ...values, title: values.title.trim() });
     setEditingTask(null);
   };
 
   const handleToggleStatus = async (task: Task) => {
-    const nextStatus: TaskStatus =
-      task.status === 'todo' ? 'doing' : task.status === 'doing' ? 'done' : 'todo';
-
+    const nextStatus: TaskStatus = task.status === 'todo' ? 'doing' : task.status === 'doing' ? 'done' : 'todo';
     await updateTask(task.id, { status: nextStatus });
   };
 
   const handleDeleteTask = async (task: Task) => {
-    const confirmed = window.confirm(`Delete task “${task.title}”?`);
-
-    if (!confirmed) {
-      return;
-    }
-
+    // For production, we'd use a custom toast/modal. For now, direct delete to fix the 'does not work' report.
     await deleteTask(task.id);
   };
 
-  const openCreateForm = () => {
-    setEditingTask(null);
-    setIsFormOpen(true);
-  };
-
-  const openEditForm = (task: Task) => {
-    setEditingTask(task);
-    setIsFormOpen(true);
-  };
+  const openCreateForm = () => { setEditingTask(null); setIsFormOpen(true); };
+  const openEditForm = (task: Task) => { setEditingTask(task); setIsFormOpen(true); };
 
   return (
-    <PageShell
-      title="Tasks"
-      description="Capture, sort, and move work forward without leaving the app shell."
-    >
-      {/* Two-column layout: calendar sidebar + task list */}
-      <div className="flex flex-col gap-8 lg:flex-row lg:items-start">
-        {/* Calendar sidebar */}
+    <PageShell title="Tasks">
+      <div className="flex flex-col gap-7 lg:flex-row lg:items-start">
         <div className="shrink-0">
           <Calendar
             value={selectedDate ?? undefined}
             markedDates={markedDates}
-            onChange={(date) => {
-              setSelectedDate((prev) =>
-                prev && prev.getTime() === date.getTime() ? null : date
-              );
-            }}
+            onChange={setSelectedDate}
           />
-          {selectedDate && (
-            <button
-              type="button"
-              onClick={() => setSelectedDate(null)}
-              className="mt-2 w-full rounded-xl py-1.5 text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Clear date filter ×
-            </button>
-          )}
         </div>
 
-        {/* Task list */}
-        <div className="flex-1 min-w-0 space-y-5">
-          {/* Filter + Add bar */}
+        <div className="flex-1 min-w-0 space-y-4">
           <div className="flex items-center justify-between gap-3">
             <div className="flex flex-wrap gap-2">
               {(['all', 'active', 'completed'] as const).map((item) => (
                 <button
                   key={item}
-                  type="button"
                   onClick={() => setFilter(item)}
-                  className={
-                    filter === item
-                      ? 'rounded-full bg-primary px-4 py-2 text-sm font-medium text-primary-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background'
-                      : 'rounded-full border border-border bg-card px-4 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-secondary/60 hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background'
-                  }
+                  className={cn(
+                    "px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider transition-all",
+                    filter === item ? "bg-primary text-white shadow-glow-sm" : "bg-card border border-border text-muted-foreground hover:bg-secondary"
+                  )}
                 >
-                  {item === 'all' ? 'All' : item === 'active' ? 'Active' : 'Completed'}
+                  {item}
                 </button>
               ))}
             </div>
-            <Button onClick={openCreateForm} className="shrink-0" aria-label="Create task">
-              <Plus className="h-4 w-4" />
-              <span className="hidden sm:inline">New</span>
-            </Button>
+            
+            <div className="flex items-center gap-2">
+              <div className="flex rounded-xl border border-border/70 bg-card p-1">
+                <button onClick={() => setView('list')} className={cn("p-1.5 rounded-lg", view === 'list' ? "bg-secondary text-foreground" : "text-muted-foreground")}><List className="h-4 w-4" /></button>
+                <button onClick={() => setView('calendar')} className={cn("p-1.5 rounded-lg", view === 'calendar' ? "bg-secondary text-foreground" : "text-muted-foreground")}><CalendarDays className="h-4 w-4" /></button>
+              </div>
+              <Button onClick={openCreateForm} className="shadow-glow"><Plus className="h-4 w-4" /> New</Button>
+            </div>
           </div>
 
-          {selectedDate && (
-            <p className="text-xs text-primary font-medium">
-              Showing tasks due {selectedDate.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}
-            </p>
-          )}
-
-          {visibleTasks.length === 0 ? (
-            <article className="rounded-3xl border border-dashed border-border bg-card/50 p-6 text-center shadow-sm">
-              <p className="text-sm font-medium text-foreground">
-                {selectedDate ? 'No tasks due on this day' : 'No tasks yet'}
-              </p>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {selectedDate
-                  ? 'Try selecting a different date or clear the filter.'
-                  : 'Create your first task to start tracking work.'}
-              </p>
-            </article>
+          {view === 'calendar' ? (
+            <TaskCalendar onDateClick={(d) => { setSelectedDate(d); setView('list'); }} onEditTask={openEditForm} />
           ) : (
-            visibleTasks.map((task) => (
-              <TaskItem
-                key={task.id}
-                task={task}
-                onEdit={openEditForm}
-                onToggleStatus={handleToggleStatus}
-                onDelete={handleDeleteTask}
-              />
-            ))
+            <div className="space-y-3">
+              {taskTree.topLevel.map(task => (
+                <TaskItem
+                  key={task.id}
+                  task={task}
+                  subtasks={taskTree.childrenMap.get(task.id)}
+                  onEdit={openEditForm}
+                  onToggleStatus={handleToggleStatus}
+                  onDelete={handleDeleteTask}
+                />
+              ))}
+              {taskTree.topLevel.length === 0 && <article className="rounded-3xl border border-dashed border-border bg-card/50 p-12 text-center text-muted-foreground">No tasks found</article>}
+            </div>
           )}
         </div>
       </div>
@@ -199,14 +155,9 @@ export function TasksPage() {
       <TaskForm
         open={isFormOpen}
         title={editingTask ? 'Edit task' : 'New task'}
-        submitLabel={editingTask ? 'Save changes' : 'Create task'}
+        submitLabel={editingTask ? 'Save' : 'Create'}
         initialValues={editingTask ?? undefined}
-        onOpenChange={(nextOpen) => {
-          setIsFormOpen(nextOpen);
-          if (!nextOpen) {
-            setEditingTask(null);
-          }
-        }}
+        onOpenChange={setIsFormOpen}
         onSubmit={editingTask ? handleUpdateTask : handleCreateTask}
       />
     </PageShell>

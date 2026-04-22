@@ -18,6 +18,7 @@ export function createPwaUpdateController(): PwaUpdateController {
   };
 
   const ensureRegistered = async () => {
+    if (import.meta.env.DEV) return;
     if (!('serviceWorker' in navigator)) return;
     if (wb) return;
 

@@ -50,7 +50,10 @@ export function NotesPage() {
   const [tagFilter, setTagFilter] = useState<TagFilter>('all');
 
   const sortedNotes = useMemo(
-    () => [...notes].sort((left, right) => right.createdAt.localeCompare(left.createdAt)),
+    () => [...notes].sort((left, right) => {
+      if (left.pinned !== right.pinned) return left.pinned ? -1 : 1;
+      return right.createdAt.localeCompare(left.createdAt);
+    }),
     [notes],
   );
 
@@ -130,6 +133,8 @@ export function NotesPage() {
         await updateNote(editingNote.id, {
           content: cleanedContent,
           tags: cleanedTags,
+          pinned: values.pinned,
+          linkedNoteIds: values.linkedNoteIds,
         });
 
         await syncTaskLinks(editingNote.id, values.linkedTaskIds);
@@ -138,6 +143,8 @@ export function NotesPage() {
           content: cleanedContent,
           tags: cleanedTags,
           linkedTaskIds: [],
+          linkedNoteIds: values.linkedNoteIds,
+          pinned: values.pinned,
         });
 
         await syncTaskLinks(created.id, values.linkedTaskIds);
@@ -187,8 +194,8 @@ export function NotesPage() {
             onClick={() => setTagFilter('all')}
             className={
               tagFilter === 'all'
-                ? 'rounded-full bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background'
-                : 'rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background'
+                ? 'rounded-full bg-primary px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.11em] text-primary-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background'
+                : 'rounded-full border border-border/70 bg-card px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.11em] text-muted-foreground transition-colors hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background'
             }
           >
             All notes
@@ -200,8 +207,8 @@ export function NotesPage() {
               onClick={() => setTagFilter(tag)}
               className={
                 tagFilter === tag
-                  ? 'rounded-full bg-primary px-3 py-1.5 text-xs font-medium text-primary-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background'
-                  : 'rounded-full border border-border bg-card px-3 py-1.5 text-xs font-medium text-muted-foreground transition-colors hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background'
+                  ? 'rounded-full bg-primary px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.11em] text-primary-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background'
+                  : 'rounded-full border border-border/70 bg-card px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.11em] text-muted-foreground transition-colors hover:text-foreground focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background'
               }
             >
               #{tag}
@@ -227,7 +234,7 @@ export function NotesPage() {
           </p>
         </article>
       ) : (
-        <section className="space-y-5">
+        <section className="space-y-4">
           {visibleNotes.map((note) => (
             <NoteItem
               key={note.id}
@@ -259,13 +266,15 @@ export function NotesPage() {
         isSaving={isSaving}
         initialValues={
           editingNote
-            ? {
-                content: editingNote.content,
-                tags: editingNote.tags,
-                linkedTaskIds: tasks.filter((task) => task.noteId === editingNote.id).map((task) => task.id),
-              }
-            : undefined
-        }
+             ? {
+                 content: editingNote.content,
+                 tags: editingNote.tags,
+                 linkedTaskIds: tasks.filter((task) => task.noteId === editingNote.id).map((task) => task.id),
+                 linkedNoteIds: editingNote.linkedNoteIds ?? [],
+                 pinned: editingNote.pinned ?? false,
+               }
+             : undefined
+         }
         onOpenChange={(nextOpen) => {
           if (!nextOpen) {
             closeEditor();

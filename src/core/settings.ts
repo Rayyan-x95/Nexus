@@ -7,6 +7,8 @@ export interface AppSettings {
   notifications: boolean;
   compactMode: boolean;
   animations: boolean;
+  appPin?: string;
+  pinEnabled: boolean;
 }
 
 interface SettingsStore extends AppSettings {
@@ -14,6 +16,8 @@ interface SettingsStore extends AppSettings {
   setNotifications: (enabled: boolean) => void;
   setCompactMode: (enabled: boolean) => void;
   setAnimations: (enabled: boolean) => void;
+  setPin: (pin?: string) => void;
+  setPinEnabled: (enabled: boolean) => void;
 }
 
 const STORAGE_KEY = 'titan-settings';
@@ -28,12 +32,14 @@ function loadSettings(): AppSettings {
         notifications: parsed.notifications ?? true,
         compactMode: parsed.compactMode ?? false,
         animations: parsed.animations ?? true,
+        appPin: parsed.appPin,
+        pinEnabled: parsed.pinEnabled ?? false,
       };
     }
   } catch {
     // ignore
   }
-  return { currency: 'USD', notifications: true, compactMode: false, animations: true };
+  return { currency: 'USD', notifications: true, compactMode: false, animations: true, pinEnabled: false };
 }
 
 function persist(settings: AppSettings) {
@@ -61,19 +67,19 @@ export const useSettings = create<SettingsStore>((set, get) => ({
   setNotifications: (notifications) => set(makeUpdater('notifications')(get(), notifications)),
   setCompactMode: (compactMode) => set(makeUpdater('compactMode')(get(), compactMode)),
   setAnimations: (animations) => set(makeUpdater('animations')(get(), animations)),
+  setPin: (appPin) => set(makeUpdater('appPin')(get(), appPin)),
+  setPinEnabled: (pinEnabled) => set(makeUpdater('pinEnabled')(get(), pinEnabled)),
 }));
 
 /**
  * Format a cent-integer amount using the user's preferred currency.
  */
 export function formatMoney(cents: number, currency: CurrencyCode): string {
-  const decimals = new Intl.NumberFormat(undefined, {
+  const formatOptions: Intl.NumberFormatOptions = {
     style: 'currency',
     currency,
-  }).resolvedOptions().minimumFractionDigits;
+  };
 
-  return new Intl.NumberFormat(undefined, {
-    style: 'currency',
-    currency,
-  }).format(cents / 10 ** decimals);
+  return new Intl.NumberFormat(undefined, formatOptions)
+    .format(cents / 100);
 }

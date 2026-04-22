@@ -19,6 +19,45 @@ self.addEventListener('message', (event) => {
 precacheAndRoute(self.__WB_MANIFEST);
 cleanupOutdatedCaches();
 
+self.addEventListener('fetch', (event) => {
+  const url = new URL(event.request.url);
+  const isShareTargetPost =
+    event.request.method === 'POST' &&
+    url.origin === self.location.origin &&
+    url.pathname === '/share';
+
+  if (!isShareTargetPost) {
+    return;
+  }
+
+  event.respondWith(handleShareTargetPost(event.request));
+});
+
+async function handleShareTargetPost(request: Request) {
+  const redirectUrl = new URL('/share', self.location.origin);
+
+  try {
+    const formData = await request.formData();
+    const title = formData.get('title');
+    const text = formData.get('text');
+
+    if (typeof title === 'string' && title.trim()) {
+      redirectUrl.searchParams.set('title', title);
+    }
+
+    if (typeof text === 'string' && text.trim()) {
+      redirectUrl.searchParams.set('text', text);
+    }
+
+    redirectUrl.searchParams.set('source', 'share-target');
+  } catch (error) {
+    console.error('[Titan] Failed to read shared payload', error);
+    redirectUrl.searchParams.set('share_error', '1');
+  }
+
+  return Response.redirect(redirectUrl.href, 303);
+}
+
 registerRoute(
   ({ request }) => request.destination === 'style' || request.destination === 'script' || request.destination === 'worker',
   new StaleWhileRevalidate({

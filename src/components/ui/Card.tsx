@@ -11,7 +11,9 @@ export function Card({ children, className }: CardProps) {
   return (
     <motion.article
       layout
-      transition={{ duration: 0.22, ease: [0.22, 0.61, 0.36, 1] }}
+      initial={{ opacity: 0, y: 8, scale: 0.985 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      transition={{ duration: 0.24, ease: [0.22, 0.61, 0.36, 1] }}
       className={cn('ui-card', className)}
     >
       {children}

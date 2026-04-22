@@ -19,7 +19,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(function Input(
       <input
         ref={ref}
         id={inputId}
-        className={cn('ui-input peer', error && 'ui-input-error', className)}
+        className={cn('ui-input peer tracking-[0.01em]', error && 'ui-input-error', className)}
         placeholder=" "
         {...props}
       />

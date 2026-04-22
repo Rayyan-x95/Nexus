@@ -19,18 +19,18 @@ export function Modal({ open, title, description, onClose, children, footer }: M
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
-          transition={{ duration: 0.2 }}
-          className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 p-4 backdrop-blur-md sm:items-center"
+          transition={{ duration: 0.18 }}
+          className="fixed inset-0 z-50 flex items-end justify-center bg-black/55 p-0 backdrop-blur-md sm:items-center sm:p-4"
           role="dialog"
           aria-modal="true"
           onClick={onClose}
         >
           <motion.div
-            initial={{ opacity: 0, y: 32, scale: 0.98 }}
+            initial={{ opacity: 0, y: 24, scale: 0.985 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 24, scale: 0.98 }}
-            transition={{ duration: 0.24, ease: [0.22, 0.61, 0.36, 1] }}
-            className="ui-surface w-full max-w-xl rounded-2xl border border-border/70 p-5 shadow-2xl"
+            exit={{ opacity: 0, y: 20, scale: 0.985 }}
+            transition={{ duration: 0.22, ease: [0.22, 0.61, 0.36, 1] }}
+            className="ui-surface w-full max-w-xl rounded-t-3xl border border-border/70 p-5 pb-6 shadow-2xl sm:rounded-3xl"
             onClick={(event) => event.stopPropagation()}
           >
             <div className="flex items-start justify-between gap-3">

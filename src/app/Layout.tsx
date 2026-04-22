@@ -1,12 +1,22 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { Outlet } from 'react-router-dom';
 import { Navigation } from '@/components/Navigation';
 import { PwaBanner } from '@/components/PwaBanner';
+import { CommandPalette } from '@/components/CommandPalette';
+import { LockScreen } from '@/components/LockScreen';
 import { useSettings } from '@/core/settings';
 import { APP_VERSION } from '@/core/version';
 
 export function Layout() {
-  const { compactMode } = useSettings();
+  const { compactMode, animations, pinEnabled, appPin } = useSettings();
+  const [isUnlocked, setIsUnlocked] = useState(!pinEnabled || !appPin);
+
+  // Re-check lock status if settings change
+  useEffect(() => {
+    if (!pinEnabled || !appPin) {
+      setIsUnlocked(true);
+    }
+  }, [pinEnabled, appPin]);
 
   // Sync compact mode to root element so CSS can react globally
   useEffect(() => {
@@ -18,8 +28,19 @@ export function Layout() {
     }
   }, [compactMode]);
 
+  useEffect(() => {
+    const root = document.documentElement;
+    if (animations) {
+      delete root.dataset.animations;
+    } else {
+      root.dataset.animations = 'off';
+    }
+  }, [animations]);
+
   return (
     <div className="min-h-screen bg-transparent text-foreground relative overflow-hidden">
+      {!isUnlocked && <LockScreen onUnlock={() => setIsUnlocked(true)} />}
+      <CommandPalette />
       {/* Ambient background glows */}
       <div className="pointer-events-none fixed inset-0 z-0">
         <div className="absolute top-[-8%] left-[-5%] w-[45%] h-[45%] rounded-full bg-primary/15 blur-[140px] animate-pulse-slow" />

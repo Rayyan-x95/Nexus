@@ -25,10 +25,6 @@ export async function promptInstall() {
 }
 
 export function registerPWA() {
-  if (!('serviceWorker' in navigator)) {
-    return;
-  }
-
   window.addEventListener('beforeinstallprompt', (event) => {
     event.preventDefault();
     deferredInstallPrompt = event as BeforeInstallPromptEvent;
@@ -38,11 +34,5 @@ export function registerPWA() {
   window.addEventListener('appinstalled', () => {
     deferredInstallPrompt = null;
     window.dispatchEvent(new CustomEvent('titan:pwa-install-availability', { detail: false }));
-  });
-
-  window.addEventListener('load', () => {
-    void navigator.serviceWorker.register('/service-worker.js').catch((error) => {
-      console.error('Service worker registration failed', error);
-    });
   });
 }

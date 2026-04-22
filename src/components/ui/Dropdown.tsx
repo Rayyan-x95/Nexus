@@ -21,6 +21,7 @@ export function Dropdown<T extends string>({ label, value, options, onChange, cl
   const [activeIndex, setActiveIndex] = useState(0);
   const rootRef = useRef<HTMLDivElement>(null);
   const buttonRef = useRef<HTMLButtonElement>(null);
+  const itemRefs = useRef<Array<HTMLButtonElement | null>>([]);
 
   const selected = useMemo(
     () => options.find((option) => option.value === value) ?? options[0],
@@ -67,48 +68,104 @@ export function Dropdown<T extends string>({ label, value, options, onChange, cl
     setActiveIndex(index);
   }, [options, value]);
 
+  useEffect(() => {
+    if (!open) {
+      return;
+    }
+
+    const target = itemRefs.current[activeIndex] ?? itemRefs.current[0];
+    target?.focus();
+  }, [activeIndex, open]);
+
+  const menuId = `${label.toLowerCase().replace(/[^a-z0-9]+/g, '-')}-menu`;
+
+  const focusItem = (index: number) => {
+    const bounded = Math.max(0, Math.min(options.length - 1, index));
+    setActiveIndex(bounded);
+    itemRefs.current[bounded]?.focus();
+  };
+
   return (
     <div ref={rootRef} className={cn('relative', className)}>
-      <button
-        ref={buttonRef}
-        type="button"
-        className="ui-button ui-button-secondary h-12 w-full min-w-44 flex items-center justify-between rounded-xl px-4"
-        aria-haspopup="listbox"
-        aria-expanded={open}
-        onClick={() => setOpen((current) => !current)}
-        onKeyDown={(event) => {
-          if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
-            event.preventDefault();
-            setOpen(true);
-          }
-        }}
-      >
-        <span className="flex flex-col items-start text-left">
-          <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{label}</span>
-          <span className="text-sm font-semibold text-foreground">{selected?.label ?? ''}</span>
-        </span>
-        <ChevronDown className={cn('h-4 w-4 text-muted-foreground transition-transform duration-200', open && 'rotate-180')} />
-      </button>
+      {open ? (
+        <button
+          ref={buttonRef}
+          type="button"
+          className="ui-button ui-button-secondary h-12 w-full min-w-44 flex items-center justify-between rounded-xl px-4"
+          aria-haspopup="menu"
+          aria-expanded="true"
+          aria-controls={menuId}
+          onClick={() => setOpen(false)}
+          onKeyDown={(event) => {
+            if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              setTimeout(() => {
+                focusItem(activeIndex);
+              }, 0);
+            }
+          }}
+        >
+          <span className="flex flex-col items-start text-left">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{label}</span>
+            <span className="text-sm font-semibold text-foreground">{selected?.label ?? ''}</span>
+          </span>
+          <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200 rotate-180" />
+        </button>
+      ) : (
+        <button
+          ref={buttonRef}
+          type="button"
+          className="ui-button ui-button-secondary h-12 w-full min-w-44 flex items-center justify-between rounded-xl px-4"
+          aria-haspopup="menu"
+          aria-expanded="false"
+          onClick={() => setOpen(true)}
+          onKeyDown={(event) => {
+            if (event.key === 'ArrowDown' || event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault();
+              setOpen(true);
+              setTimeout(() => {
+                focusItem(activeIndex);
+              }, 0);
+            }
+          }}
+        >
+          <span className="flex flex-col items-start text-left">
+            <span className="text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{label}</span>
+            <span className="text-sm font-semibold text-foreground">{selected?.label ?? ''}</span>
+          </span>
+          <ChevronDown className="h-4 w-4 text-muted-foreground transition-transform duration-200" />
+        </button>
+      )}
 
       <AnimatePresence>
         {open ? (
           <motion.div
+            id={menuId}
             initial={{ opacity: 0, scale: 0.96, y: -8 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: -8 }}
             transition={{ duration: 0.18, ease: [0.22, 0.61, 0.36, 1] }}
             className="ui-surface absolute right-0 top-[calc(100%+0.5rem)] z-40 min-w-44 overflow-hidden rounded-xl border border-border/70 p-1 shadow-2xl"
-            role="listbox"
-            tabIndex={-1}
+            aria-label={label}
             onKeyDown={(event) => {
               if (event.key === 'ArrowDown') {
                 event.preventDefault();
-                setActiveIndex((index) => Math.min(options.length - 1, index + 1));
+                focusItem(activeIndex + 1);
               }
 
               if (event.key === 'ArrowUp') {
                 event.preventDefault();
-                setActiveIndex((index) => Math.max(0, index - 1));
+                focusItem(activeIndex - 1);
+              }
+
+              if (event.key === 'Home') {
+                event.preventDefault();
+                focusItem(0);
+              }
+
+              if (event.key === 'End') {
+                event.preventDefault();
+                focusItem(options.length - 1);
               }
 
               if (event.key === 'Enter') {
@@ -121,34 +178,78 @@ export function Dropdown<T extends string>({ label, value, options, onChange, cl
                   buttonRef.current?.focus();
                 }
               }
+
+              if (event.key === 'Escape') {
+                event.preventDefault();
+                setOpen(false);
+                buttonRef.current?.focus();
+              }
+
+              if (event.key === 'Tab') {
+                event.preventDefault();
+                if (event.shiftKey) {
+                  focusItem(activeIndex - 1);
+                } else {
+                  focusItem(activeIndex + 1);
+                }
+              }
             }}
           >
-            {options.map((option, index) => {
-              const isSelected = option.value === value;
+            <ul role="menu" aria-label={label} className="m-0 list-none p-0">
+              {options.map((option, index) => {
+                const isSelected = option.value === value;
 
-              return (
-                <button
-                  key={option.value}
-                  type="button"
-                  role="option"
-                  aria-selected={isSelected}
-                  className={cn(
-                    'flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors',
-                    isSelected || activeIndex === index
-                      ? 'bg-primary/15 text-primary'
-                      : 'text-foreground hover:bg-secondary/70',
-                  )}
-                  onMouseEnter={() => setActiveIndex(index)}
-                  onClick={() => {
-                    onChange(option.value);
-                    setOpen(false);
-                    buttonRef.current?.focus();
-                  }}
-                >
-                  {option.label}
-                </button>
-              );
-            })}
+                return (
+                  <li key={option.value} role="none">
+                    {isSelected ? (
+                      <button
+                        ref={(element) => {
+                          itemRefs.current[index] = element;
+                        }}
+                        type="button"
+                        role="menuitemradio"
+                        aria-checked="true"
+                        tabIndex={activeIndex === index ? 0 : -1}
+                        className={cn(
+                          'flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors',
+                          'bg-primary/15 text-primary',
+                        )}
+                        onMouseEnter={() => setActiveIndex(index)}
+                        onClick={() => {
+                          onChange(option.value);
+                          setOpen(false);
+                          buttonRef.current?.focus();
+                        }}
+                      >
+                        {option.label}
+                      </button>
+                    ) : (
+                      <button
+                        ref={(element) => {
+                          itemRefs.current[index] = element;
+                        }}
+                        type="button"
+                        role="menuitemradio"
+                        aria-checked="false"
+                        tabIndex={activeIndex === index ? 0 : -1}
+                        className={cn(
+                          'flex w-full items-center justify-between rounded-lg px-3 py-2 text-sm transition-colors',
+                          activeIndex === index ? 'bg-primary/15 text-primary' : 'text-foreground hover:bg-secondary/70',
+                        )}
+                        onMouseEnter={() => setActiveIndex(index)}
+                        onClick={() => {
+                          onChange(option.value);
+                          setOpen(false);
+                          buttonRef.current?.focus();
+                        }}
+                      >
+                        {option.label}
+                      </button>
+                    )}
+                  </li>
+                );
+              })}
+            </ul>
           </motion.div>
         ) : null}
       </AnimatePresence>

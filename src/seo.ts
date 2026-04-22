@@ -1,4 +1,5 @@
 import { useEffect } from 'react';
+import { getPublicUrlBase } from '@/core/publicUrl';
 
 const appName = 'Titan';
 const defaultDescription =
@@ -53,11 +54,7 @@ export function useSeo({ title, description, path, image, keywords }: SeoConfig)
     const resolvedDescription = description ?? defaultDescription;
     const resolvedImage = image ?? defaultImage;
     const resolvedKeywords = keywords ?? defaultKeywords;
-    const publicBase = import.meta.env.VITE_PUBLIC_URL;
-    const baseUrl =
-      typeof publicBase === 'string' && /^https?:\/\//i.test(publicBase)
-        ? publicBase
-        : resolveAbsoluteUrl(String(publicBase ?? ''), window.location.origin);
+    const baseUrl = getPublicUrlBase();
     const resolvedPath = path ?? window.location.pathname;
     const resolvedUrl = resolveAbsoluteUrl(resolvedPath, baseUrl);
     const resolvedImageUrl = resolveAbsoluteUrl(resolvedImage, baseUrl);

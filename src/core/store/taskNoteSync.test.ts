@@ -15,6 +15,7 @@ function createTask(overrides: Partial<Task> = {}): Task {
     id: 'task-1',
     title: 'Write release notes',
     status: 'todo',
+    priority: 'medium',
     createdAt: '2026-04-19T00:00:00.000Z',
     ...overrides,
   };
@@ -26,6 +27,7 @@ function createNote(overrides: Partial<Note> = {}): Note {
     content: 'Draft release notes',
     tags: [],
     linkedTaskIds: [],
+    pinned: false,
     createdAt: '2026-04-19T00:00:00.000Z',
     ...overrides,
   };

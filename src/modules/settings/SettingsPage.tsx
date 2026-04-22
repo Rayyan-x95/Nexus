@@ -3,7 +3,6 @@ import {
   Moon,
   Download,
   Trash2,
-  Bell,
   Database,
   Info,
   Smartphone,
@@ -93,7 +92,10 @@ export function SettingsPage() {
   const importBackup = useStore((state) => state.importBackup);
   const clearAll = useStore((state) => state.clearAll);
 
-  const { currency, notifications, compactMode, animations, setCurrency, setNotifications, setCompactMode, setAnimations } = useSettings();
+  const { 
+    currency, compactMode, animations, appPin, pinEnabled,
+    setCurrency, setCompactMode, setAnimations, setPin, setPinEnabled 
+  } = useSettings();
 
   const totalItems = tasks.length + notes.length + expenses.length;
   const storageEstimate = `${totalItems} items stored locally`;
@@ -179,16 +181,6 @@ export function SettingsPage() {
           />
         </SettingsSection>
 
-        {/* Notifications */}
-        <SettingsSection title="Notifications">
-          <SettingsRow
-            icon={<Bell className="h-5 w-5" />}
-            title="Push Notifications"
-            description="Get reminded about tasks with upcoming due dates."
-            action={<Toggle checked={notifications} onChange={setNotifications} ariaLabel="Toggle push notifications" />}
-          />
-        </SettingsSection>
-
         {/* Finance */}
         <SettingsSection title="Finance">
           <SettingsRow
@@ -209,6 +201,45 @@ export function SettingsPage() {
                 ]}
                 className="w-48"
               />
+            }
+          />
+        </SettingsSection>
+
+        {/* Security */}
+        <SettingsSection title="Security">
+          <SettingsRow
+            icon={<ShieldCheck className="h-5 w-5" />}
+            title="App PIN Lock"
+            description="Require a 4-digit PIN to access Titan. This adds an extra layer of privacy."
+            action={
+              <div className="flex items-center gap-3">
+                {pinEnabled && (
+                  <Button variant="outline" size="sm" onClick={() => {
+                    const next = window.prompt('Enter new 4-digit PIN:');
+                    if (next && next.length === 4 && /^\d+$/.test(next)) setPin(next);
+                    else if (next) window.alert('PIN must be 4 digits.');
+                  }}>
+                    Change PIN
+                  </Button>
+                )}
+                <Toggle 
+                  checked={pinEnabled} 
+                  onChange={(val) => {
+                    if (val && !appPin) {
+                      const next = window.prompt('Set 4-digit PIN:');
+                      if (next && next.length === 4 && /^\d+$/.test(next)) {
+                        setPin(next);
+                        setPinEnabled(true);
+                      } else {
+                        window.alert('PIN must be 4 digits.');
+                      }
+                    } else {
+                      setPinEnabled(val);
+                    }
+                  }} 
+                  ariaLabel="Toggle PIN lock" 
+                />
+              </div>
             }
           />
         </SettingsSection>

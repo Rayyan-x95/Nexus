@@ -3,24 +3,43 @@ import { Card } from '@/components/ui/Card';
 
 interface DashboardCardProps {
   title: string;
+  /** Large number or summary displayed beneath the title */
   subtitle?: string;
   children: ReactNode;
+  /** Optional top-right element (e.g. "View all" link) */
   action?: ReactNode;
+  /** Optional icon rendered beside the title */
+  icon?: ReactNode;
 }
 
-export function DashboardCard({ title, subtitle, children, action }: DashboardCardProps) {
+export function DashboardCard({ title, subtitle, children, action, icon }: DashboardCardProps) {
   return (
-    <Card className="p-6 relative overflow-hidden group">
-      <div className="absolute top-0 right-0 w-36 h-36 bg-primary/8 rounded-full blur-3xl -z-10 group-hover:bg-primary/15 transition-all duration-700" />
-      <div className="flex items-start justify-between gap-3 relative z-10">
-        <div className="space-y-1">
-          <p className="text-xs font-semibold text-primary/70">{title}</p>
-          {subtitle ? <h3 className="text-xl font-semibold tracking-tight text-foreground">{subtitle}</h3> : null}
+    <Card className="relative overflow-hidden p-5">
+      {/* Ambient glow orb */}
+      <div className="pointer-events-none absolute -right-8 -top-8 h-32 w-32 rounded-full bg-primary/10 blur-3xl opacity-60 transition-opacity duration-300 group-hover:opacity-100" />
+
+      {/* Header */}
+      <div className="relative z-10 flex items-start justify-between gap-3">
+        <div className="flex items-center gap-2">
+          {icon && (
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary/10">
+              {icon}
+            </div>
+          )}
+          <div className="space-y-0.5">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-muted-foreground">
+              {title}
+            </p>
+            {subtitle ? (
+              <p className="text-base font-semibold tracking-tight text-foreground">{subtitle}</p>
+            ) : null}
+          </div>
         </div>
         {action}
       </div>
-      <div className="mt-6 relative z-10">{children}</div>
+
+      {/* Body */}
+      <div className="relative z-10 mt-4">{children}</div>
     </Card>
   );
 }
-

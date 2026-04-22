@@ -16,7 +16,7 @@ export function Navigation() {
       aria-label="Primary navigation"
       className="fixed inset-x-0 bottom-6 z-50 mx-auto max-w-[min(90vw,400px)] pointer-events-none"
     >
-      <div className="pointer-events-auto grid grid-cols-5 gap-1 rounded-[2rem] border border-border/40 bg-background/50 p-2 backdrop-blur-xl shadow-glass">
+      <div className="compact-nav pointer-events-auto grid grid-cols-5 gap-1 rounded-[2rem] border border-border/40 bg-background/50 p-2 backdrop-blur-xl shadow-glass">
         {items.map((item) => {
           const Icon = item.icon;
 

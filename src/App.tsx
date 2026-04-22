@@ -1,6 +1,7 @@
 import { Suspense, lazy } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import { Layout } from '@/app/Layout';
+import { useStore } from '@/core/store';
 
 const DashboardPage = lazy(() =>
   import('@/modules/dashboard/DashboardPage').then((module) => ({ default: module.DashboardPage })),
@@ -20,6 +21,20 @@ const SettingsPage = lazy(() =>
 const ShareTargetPage = lazy(() =>
   import('@/modules/share/ShareTargetPage').then((module) => ({ default: module.ShareTargetPage })),
 );
+const OnboardingPage = lazy(() =>
+  import('@/modules/onboarding/OnboardingPage').then((module) => ({ default: module.OnboardingPage })),
+);
+
+function OnboardingGate() {
+  const onboarding = useStore((state) => state.onboarding);
+  const hasResolvedOnboarding = Boolean(onboarding.completedAt || onboarding.skippedAt);
+
+  if (!hasResolvedOnboarding) {
+    return <Navigate to="/onboarding" replace />;
+  }
+
+  return <Layout />;
+}
 
 export default function App() {
   return (
@@ -31,7 +46,8 @@ export default function App() {
       }
     >
       <Routes>
-        <Route element={<Layout />}>
+        <Route path="onboarding" element={<OnboardingPage />} />
+        <Route element={<OnboardingGate />}>
           <Route index element={<DashboardPage />} />
           <Route path="tasks" element={<TasksPage />} />
           <Route path="notes" element={<NotesPage />} />
