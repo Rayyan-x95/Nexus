@@ -9,6 +9,7 @@ import { APP_VERSION } from '@/core/version';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
 import { cn } from '@/utils/cn';
 import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/react";
 
 export function Layout() {
   const { compactMode, animations, pinEnabled, appPin } = useSettings();
@@ -92,6 +93,7 @@ export function Layout() {
 
       <Navigation />
       <Analytics />
+      <SpeedInsights />
     </div>
   );
 }
