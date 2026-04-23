@@ -8,6 +8,7 @@ import { useSettings } from '@/core/settings';
 import { APP_VERSION } from '@/core/version';
 import { useScrollDirection } from '@/hooks/useScrollDirection';
 import { cn } from '@/utils/cn';
+import { Analytics } from "@vercel/analytics/react";
 
 export function Layout() {
   const { compactMode, animations, pinEnabled, appPin } = useSettings();
@@ -90,6 +91,7 @@ export function Layout() {
       </main>
 
       <Navigation />
+      <Analytics />
     </div>
   );
 }
