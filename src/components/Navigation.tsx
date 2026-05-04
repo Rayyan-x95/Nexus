@@ -3,7 +3,6 @@ import {
   SquareCheckBig,
   Landmark,
   NotebookPen,
-  Plus,
   Settings,
 } from 'lucide-react';
 import { NavLink, useNavigate, useLocation } from 'react-router-dom';
@@ -69,17 +68,6 @@ export function Navigation() {
           );
         })}
 
-        <div className="h-6 w-[1px] bg-white/10 mx-1" />
-
-        <button
-          onClick={() => {
-            void navigate('/tasks?new=1');
-          }}
-          className="relative flex h-12 w-12 items-center justify-center rounded-full bg-blue-600 text-white shadow-glow-blue active:scale-90 transition-all overflow-hidden"
-        >
-          <div className="absolute inset-0 bg-gradient-to-tr from-black/20 to-transparent pointer-events-none" />
-          <Plus className="h-6 w-6 relative z-10" strokeWidth={3} />
-        </button>
       </div>
     </nav>
   );

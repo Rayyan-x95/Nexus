@@ -10,7 +10,11 @@ import {
   RefreshCw,
   Fingerprint,
   QrCode,
+  ChevronRight,
+  ExternalLink,
+  FileText,
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { Button, Dropdown } from '@/components/ui';
 import { PageShell } from '@/components';
 import { useStore } from '@/core/store';
@@ -39,7 +43,7 @@ function SettingsRow({ icon, title, description, action }: SettingsRowProps) {
           <p className="text-xs text-slate-500 leading-relaxed font-bold">{description}</p>
         </div>
       </div>
-      <div className="shrink-0 pl-15 sm:pl-0">{action}</div>
+      <div className="shrink-0 pl-[3.75rem] sm:pl-0">{action}</div>
     </div>
   );
 }
@@ -72,7 +76,7 @@ function Toggle({
       aria-label={`${ariaLabel}: ${checked ? 'On' : 'Off'}`}
       onClick={() => onChange(!checked)}
       className={cn(
-        'relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 focus:outline-none',
+        'relative inline-flex h-7 w-12 items-center rounded-full transition-all duration-300 focus:outline-none min-h-0 min-w-0',
         checked ? 'bg-blue-600 shadow-glow-blue' : 'bg-slate-800',
       )}
     >
@@ -398,6 +402,24 @@ export function SettingsPage() {
         </SettingsSection>
         <SettingsSection title="Advanced Diagnostics">
           <DiagnosticsDashboard />
+        </SettingsSection>
+        <SettingsSection title="Legal">
+          <Link to="/terms">
+            <SettingsRow
+              icon={<FileText className="h-5 w-5" />}
+              title="Terms of Service"
+              description="Read the terms and conditions for using Titan."
+              action={<ChevronRight className="h-5 w-5 text-slate-600" />}
+            />
+          </Link>
+          <Link to="/privacy">
+            <SettingsRow
+              icon={<ShieldCheck className="h-5 w-5" />}
+              title="Privacy Policy"
+              description="Learn how Titan protects your data locally."
+              action={<ChevronRight className="h-5 w-5 text-slate-600" />}
+            />
+          </Link>
         </SettingsSection>
         <SettingsSection title="About">
           <SettingsRow

@@ -53,7 +53,7 @@ export function Calendar({ value, onChange, markedDates = [], className }: Calen
   return (
     <div
       className={cn(
-        'w-[280px] select-none rounded-3xl border border-border bg-card p-4 shadow-glass',
+        'w-full lg:w-[280px] max-w-md mx-auto lg:mx-0 select-none rounded-[2rem] border border-border bg-card/40 p-5 backdrop-blur-xl shadow-glass',
         className,
       )}
     >
@@ -63,7 +63,7 @@ export function Calendar({ value, onChange, markedDates = [], className }: Calen
           type="button"
           onClick={() => setCursor(new Date(year, month - 1, 1))}
           aria-label="Previous month"
-          className="flex h-8 w-8 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          className="flex h-8 w-8 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground active:scale-90"
         >
           <ChevronLeft className="h-4 w-4" />
         </button>
@@ -79,7 +79,7 @@ export function Calendar({ value, onChange, markedDates = [], className }: Calen
           type="button"
           onClick={() => setCursor(new Date(year, month + 1, 1))}
           aria-label="Next month"
-          className="flex h-8 w-8 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+          className="flex h-8 w-8 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground active:scale-90"
         >
           <ChevronRight className="h-4 w-4" />
         </button>
@@ -126,10 +126,10 @@ export function Calendar({ value, onChange, markedDates = [], className }: Calen
                 className={cn(
                   'h-8 w-8 rounded-full text-sm transition-all duration-150',
                   !cell.current && 'pointer-events-none text-muted-foreground/25',
-                  cell.current && !isSelected && !isToday && 'text-foreground hover:bg-secondary',
-                  isToday && !isSelected && 'font-bold text-primary ring-1 ring-primary/50',
+                  cell.current && !isSelected && !isToday && 'text-foreground hover:bg-secondary active:scale-95',
+                  isToday && !isSelected && 'font-bold text-primary ring-1 ring-primary/50 active:scale-95',
                   isSelected &&
-                    'bg-primary font-bold text-primary-foreground shadow-glow scale-110',
+                    'bg-primary font-bold text-primary-foreground shadow-glow scale-110 active:scale-95',
                 )}
               >
                 {cell.day}

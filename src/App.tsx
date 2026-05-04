@@ -60,6 +60,12 @@ const BlogPage = lazy(() =>
 const BlogPost = lazy(() =>
   import('@/features/marketing/BlogPost').then((m) => ({ default: m.BlogPost })),
 );
+const PrivacyPage = lazy(() =>
+  import('@/features/marketing/PrivacyPage').then((m) => ({ default: m.PrivacyPage })),
+);
+const TermsPage = lazy(() =>
+  import('@/features/marketing/TermsPage').then((m) => ({ default: m.TermsPage })),
+);
 
 // SEO Specific Landing Pages
 const PersonalLifeOSPage = lazy(() =>
@@ -125,6 +131,8 @@ export default function App() {
         <Route path="install-titan" element={<InstallPage />} />
         <Route path="blog" element={<BlogPage />} />
         <Route path="blog/:slug" element={<BlogPost />} />
+        <Route path="privacy" element={<PrivacyPage />} />
+        <Route path="terms" element={<TermsPage />} />
 
         {/* SEO Targeted Routes */}
         <Route path="personal-life-os" element={<PersonalLifeOSPage />} />

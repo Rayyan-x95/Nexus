@@ -42,6 +42,7 @@ export function TasksPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingTask, setEditingTask] = useState<Task | null>(null);
   const [view, setView] = useState<TaskView>('list');
+  const [showMobileCalendar, setShowMobileCalendar] = useState(false);
 
   const markedDates = useMemo(
     () => tasks.map((t) => t.dueDate).filter(Boolean) as string[],
@@ -111,13 +112,33 @@ export function TasksPage() {
       title="Tasks"
       description="Plan today, keep upcoming visible, and close loops without clutter."
     >
-      <div className="flex flex-col gap-7 lg:flex-row lg:items-start">
-        <div className="shrink-0">
-          <Calendar
-            value={selectedDate ?? undefined}
-            markedDates={markedDates}
-            onChange={setSelectedDate}
-          />
+      <div className="flex flex-col gap-6 lg:flex-row lg:items-start">
+        <div className="w-full lg:w-auto shrink-0 space-y-4">
+          <div className="flex lg:hidden items-center justify-between px-1">
+            <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500">
+              {selectedDate ? selectedDate.toLocaleDateString(undefined, { month: 'long', year: 'numeric' }) : 'Calendar'}
+            </p>
+            <button
+              onClick={() => setShowMobileCalendar(!showMobileCalendar)}
+              className="text-[10px] font-black uppercase tracking-widest text-blue-400 py-1 px-3 rounded-full bg-blue-500/10 border border-blue-500/20"
+            >
+              {showMobileCalendar ? 'Hide' : 'Show'}
+            </button>
+          </div>
+          
+          <div className={cn(
+            "transition-all duration-500 ease-in-out overflow-hidden",
+            showMobileCalendar ? "max-h-[500px] opacity-100" : "max-h-0 opacity-0 lg:max-h-none lg:opacity-100"
+          )}>
+            <Calendar
+              value={selectedDate ?? undefined}
+              markedDates={markedDates}
+              onChange={(date) => {
+                setSelectedDate(date);
+                if (window.innerWidth < 1024) setShowMobileCalendar(false);
+              }}
+            />
+          </div>
         </div>
 
         <div className="flex-1 min-w-0 space-y-6">
@@ -195,7 +216,7 @@ export function TasksPage() {
               </div>
               <button
                 onClick={openCreateForm}
-                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 text-white font-bold text-sm shadow-glow-blue active:scale-95 transition-all"
+                className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-4 sm:py-2.5 rounded-full bg-gradient-to-br from-blue-600 to-cyan-500 text-white font-bold text-sm shadow-glow-blue active:scale-95 transition-all"
               >
                 <Plus className="h-5 w-5" strokeWidth={3} />
                 <span>New</span>
